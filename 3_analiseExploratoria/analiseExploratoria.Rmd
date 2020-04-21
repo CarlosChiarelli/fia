@@ -1,0 +1,252 @@
+---
+title: 'fia: Análise exploratória dos dados'
+author: "finanças inteligentes automatizadas"
+date: "15/02/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# bibliotecas
+library(tidyverse)
+library(lubridate)
+library(ggthemes)
+library(ggpubr)
+library(ggcorrplot)
+
+# tema para series temporais
+theme_set(theme_economist())
+
+####### FUNÇÕES #######
+
+colunasAlvo <- function(dfCompleto, coluna="close"){
+  # pega o df completo e retorna df com 3 colunas
+  # data, codigo, coluna escolhida (open, close, high, low, volume, adjusted)
+  
+  dfCompleto %>% 
+  select(
+    ends_with(coluna), data
+  ) %>% 
+  rename_at(
+    vars(-data),
+    function(col){ str_sub(col, end = 5) }
+  ) %>% 
+  gather(codigo, !!coluna, -data)
+}
+  
+plotaColAlvo <- function(df, comLegenda = F){
+  # plota a coluna alvo escolhida
+  
+  # pega o nome da coluna a ser plotada
+  colAlvo <- names(df)[3]
+  
+  # faz o grafico
+  plot <- df %>% 
+    ggplot(
+      aes_string("data", colAlvo, col="codigo")
+    )+
+    geom_line()+
+    labs(title = colAlvo)
+  
+  # decide se quer os rotulos da legenda
+  if(comLegenda){
+    plot + theme(legend.position = 'bottom')
+  }else{
+    plot + theme(legend.position = 'none')
+  }
+}
+
+plotaDuasColunas <- function(df, col1, col2){
+  # plota duas colunas principais juntas
+  
+  g1 <- df %>% 
+    colunasAlvo(col1) %>% 
+    plotaColAlvo()
+
+  g2 <- df %>% 
+    colunasAlvo(col2) %>% 
+    plotaColAlvo()
+
+  ggarrange(g1, g2, ncol = 1)
+}
+
+####### FUNÇÕES #######
+```
+
+## Exploração dos dados
+
+Iremos explorar os dados das ações obtidos na fase anterior.
+
+```{r}
+# leitura dos dados
+acoesDf <- read_csv("../2_juntandoDadosWebScraping/dadosAcoesBr.csv")
+```
+
+## Valores faltantes
+
+```{r}
+# aqui vamos contar a quantidade de NAs em cada coluna
+auxDf <- acoesDf %>% 
+  map_df(
+    function(col){
+      
+      col %>% 
+        is.na() %>% 
+        sum()
+    }
+  ) %>% 
+  gather(coluna, nulos) 
+
+auxDf %>% 
+  count(nulos) %>%
+  mutate(
+    muitosNA = if_else(nulos>10, 1, 0)
+  ) %>% 
+  ggplot(
+    aes(factor(n), nulos)
+  )+
+  geom_col(fill='black')+
+  geom_text(
+    aes(label=nulos),
+    vjust=-.5
+  )+
+  scale_y_continuous(limits = c(0,200))+
+  labs(
+    title = "Contagem dos NAs na colunas",
+    y="número de NAs\n",
+    x="número de colunas"
+  )+
+  facet_wrap(~ muitosNA, scales = "free_x")+
+  theme(
+  strip.background = element_blank(),
+  strip.text.x = element_blank()
+)
+```
+
+```{r}
+auxDf %>% 
+  filter(nulos>2) %>% 
+  ggplot(
+    aes(coluna, nulos)
+  )+
+  geom_col()+
+  geom_text(
+    aes(label=nulos),
+    hjust=-.01
+  )+
+  labs(title = "Quantidade de valores faltantes")+
+  coord_flip()
+```
+
+
+Observando os gráficos que o **Santander** ("SANB11") deve ser descartado da análise por apresentar muitos **missings**. As demais ações apresentam apenas 2 ou 4 missings, logo essas linhas podem ser descartadas sem muitas preocupações.
+
+Um outro problema encontrado em todas colunas é uma janela temporal sem dados de 6 dias em dois momentos, em Fevereiro e em Março.
+
+```{r}
+acoesDf %>% 
+  plotaDuasColunas('open', 'close')
+```
+
+```{r}
+acoesDf %>% 
+  plotaDuasColunas('adjusted', 'volume')
+```
+
+```{r}
+acoesDf %>% 
+  plotaDuasColunas('high', 'low')
+```
+
+```{r}
+acoesDf %>% 
+  filter(
+    data>"2018-01-01" & data<"2019-06-01"
+  ) %>% 
+  plotaDuasColunas('high', 'low')
+```
+
+```{r}
+g1 <- acoesDf %>% 
+  filter(
+    (data>"2018-02-07" & data<"2018-02-19")
+  ) %>% 
+  plotaDuasColunas('high', 'low')
+
+g2 <- acoesDf %>% 
+  filter(
+    (data>"2019-02-27" & data<"2019-03-11")
+  ) %>% 
+  plotaDuasColunas('high', 'low')
+
+ggarrange(g1, g2, ncol = 2)
+```
+
+Outro ponto encontrado é que não existe dados do sábado e do domingo, dias 7 e 1 da semana (respectivamente). Ainda existe missings temporais que não parecem nos dados como podemos observar no gráfico abaixo.
+
+```{r}
+aux <- acoesDf %>% 
+  select(
+    data, starts_with('petr3'), -petr3_sa_adjusted, -petr3_sa_volume
+  ) %>% 
+  mutate(
+    diaSemana = wday(data)
+  ) 
+
+tibble(data = seq(ymd('2017-01-10'),ymd('2020-01-01'), 1)) %>% 
+  left_join(aux) %>% 
+  mutate(
+    nulos = if_else(is.na(diaSemana), 1, 0),
+    somaAcumNAs = cumsum(nulos),
+  ) %>% 
+  select(data, somaAcumNAs, nulos) %>% 
+  filter(data<'2017-02-28') %>% 
+  ggplot(
+    aes(data, somaAcumNAs, col=nulos)
+  )+ 
+  geom_line()+
+  geom_point()+
+  labs(title = "Soma acumulada dos missings - 2017")+
+  theme(legend.position = 'none')
+```
+
+
+## Outliers
+
+Nos gráficos acima vemos nitidamente um salto muito abrupto de uma das ações.
+
+Trata-se das ações do *magazile luiza* (mglu3), que possivelmente serão removidas no momento da modelagem.
+
+```{r}
+acoesDf %>% 
+  filter(
+    data>"2019-01-01" & data<"2020-01-01"
+  ) %>% 
+  select(
+    starts_with('mglu3'), data
+  ) %>% 
+  plotaDuasColunas('close', 'volume')
+
+```
+
+## Correlação
+
+```{r}
+acoesDf %>% 
+  select(
+    starts_with('petr3'),
+    starts_with('vale3'),
+    -data¶
+  ) %>% 
+  cor() %>% 
+  ggcorrplot()
+```
+
+Visualizando a correlação das colunas da Petrobras e da Vale vemos que não existe uma relação linear entre elas.
+
+
+
+
+
+

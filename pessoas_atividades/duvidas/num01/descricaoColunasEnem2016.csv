@@ -1,0 +1,39 @@
+nome_coluna,descricao_colua
+id,Número de inscrição
+ano,Ano do Enem
+cidade,Nome do município de residência
+estado,Sigla da Unidade da Federação de residência
+idade,idade
+sexo,sexo
+estCivil,Estado Civil
+raca,Cor/raça
+nacion,nacionalidade
+concluEm,Situação de conclusão do Ensino Médio
+anoConcEm,Ano de Conclusão do Ensino Médio
+escTipo,Tipo de escola do Ensino Médio. 2006 significa que não informou ou conclusão anterior a 2007
+escInst,Tipo de instituição que concluiu ou concluirá o Ensino Médio
+escDep,Dependência administrativa (Escola)
+escLocal,Localização (Escola)
+escSituac,Situação de funcionamento (Escola)
+prens_cn,Presença na prova objetiva de Ciências da Natureza
+prens_ch,Presença na prova objetiva de Ciências Humanas
+prens_lc,Presença na prova objetiva de Linguagens e Códigos
+prens_mt,Presença na prova objetiva de Matemática
+nota_cn,Nota da prova de Ciências da Natureza
+nota_ch,Nota da prova de Ciências Humanas
+nota_lc,Nota da prova de Linguagens e Códigos
+nota_mt,Nota da prova de Matemática
+tipoLing,Língua estrangeira
+statuReda,Situação da redação do participante
+nota_reda1,Nota da competência 1 - Demonstrar domínio da modalidade escrita formal da Língua Portuguesa
+nota_reda2,"Nota da competência 2 - Compreender a proposta de redação e aplicar conceitos das várias áreas de conhecimento para desenvolver o tema, dentro dos limites estruturais do texto dissertativo-argumentativo em prosa."
+nota_reda3,"Nota da competência 3 - Selecionar, relacionar, organizar e interpretar informações, fatos, opiniões e argumentos em defesa de um ponto de vista."
+nota_reda4,Nota da competência 4 - Demonstrar conhecimento dos mecanismos linguísticos necessários para a construção da argumentação.
+nota_reda5,"Nota da competência 5 - Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos."
+nota_redaTot,Nota da prova de redação
+sociEco_escPai,"Até que série seu pai, ou o homem responsável por você, estudou?"
+sociEco_escMae,"Até que série sua mãe, ou a mulher responsável por você, estudou?"
+sociEco_ocupPai,"A partir da apresentação de algumas ocupações divididas em grupos ordenados, indique o grupo que contempla a ocupação mais próxima da ocupação do seu pai ou do homem responsável por você. (Se ele não estiver trabalhando, escolha uma ocupação pensando no último trabalho dele). Não sabe é considerado ZERO"
+sociEco_ocupMae,"A partir da apresentação de algumas ocupações divididas em grupos ordenados, indique o grupo que contempla a ocupação mais próxima da ocupação da sua mãe ou da mulher responsável por você. (Se ela não estiver trabalhando, escolha uma ocupação pensando no último trabalho dela). Não sabe é considerado ZERO"
+sociEco_numPessRes,"Incluindo você, quantas pessoas moram atualmente em sua residência?"
+sociEco_renda,Qual é a renda mensal de sua família? (Some a sua renda com a dos seus familiares.)
